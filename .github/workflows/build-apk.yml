@@ -2,7 +2,7 @@ name: Build APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -10,9 +10,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
 
     - name: Set up JDK 17
@@ -21,14 +23,20 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Validate Gradle Wrapper
+      run: |
+        ls -la gradle/wrapper/
+        file gradle/wrapper/gradle-wrapper.jar
+
     - name: Make gradlew executable
       run: chmod +x ./gradlew
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: ./gradlew assembleDebug --stacktrace --info
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
+        name: BigoMonitor-Debug-APK
         path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7
